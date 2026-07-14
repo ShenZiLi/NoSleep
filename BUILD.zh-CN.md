@@ -1,95 +1,95 @@
-> 🌐 Languages: [English](BUILD.md) | [简体中文](BUILD.zh-CN.md)
+> 🌐 语言:[English](BUILD.md) | [简体中文](BUILD.zh-CN.md)
 
-# How to Build from Source Code
+# 如何从源代码构建
 
-This document describes how to build NoSleep from source code. These instructions are intended for developers who want to contribute or experiment with the codebase.
+本文档描述了如何从源代码构建 NoSleep。这些说明面向希望为项目贡献代码或对代码库进行试验的开发者。
 
-The solution uses WinForms and targets two frameworks:
+该解决方案使用 WinForms,并以两个框架为目标:
 
-- net48 – .NET Framework 4.8 (legacy)
-- net8.0-windows – .NET 8.0 (Windows-specific)
+- net48 – .NET Framework 4.8(旧版)
+- net8.0-windows – .NET 8.0(Windows 专用)
 
-The goal is to build a single standalone executable of small size (i.e., we can publish a single file; the executable does not contain the .NET runtime) for simple distribution.
+目标是构建一个体积较小的独立可执行文件(即我们可以发布单文件;可执行文件本身不包含 .NET 运行时),以便于简单分发。
 
-NoSleep was originally built using the .NET 4.x framework. Since .NET 4.x comes bundled with Windows, normally no extra steps are required from the end user.
+NoSleep 最初使用 .NET 4.x 框架构建。由于 .NET 4.x 随 Windows 一起捆绑,通常终端用户无需进行额外操作。
 
-.NET 8.0 was added during project modernization to make future updates easier.
+在项目现代化过程中添加了 .NET 8.0,以便更轻松地进行未来的更新。
 
-## Prerequisites
+## 先决条件
 
-- Windows (required because the application is Windows‑only)
-- For .NET 8.0 build:
-  - .NET SDK 8.0 or later
-- For .NET Framework 4.8 (legacy):
-  - .NET SDK (any recent version)
+- Windows(必需,因为该应用程序仅支持 Windows)
+- 对于 .NET 8.0 构建:
+  - .NET SDK 8.0 或更高版本
+- 对于 .NET Framework 4.8(旧版):
+  - .NET SDK(任意较新版本)
   - .NET Framework 4.8 SDK
   - MSBuild
 
-You can obtain the required components for .NET Framework 4.8 by installing either:
+您可以通过安装以下任意一项来获取 .NET Framework 4.8 所需的组件:
 
-- Visual Studio Build Tools – select the ".NET desktop build tools" workload (this will include all necessary components), or
-- Full Visual Studio (Community/Professional/Enterprise) with the ".NET desktop development" workload.
+- Visual Studio Build Tools – 选择 ".NET desktop build tools" 工作负载(这将包含所有必要的组件),或
+- 完整版 Visual Studio(Community/Professional/Enterprise)并选择 ".NET desktop development" 工作负载。
 
-## Getting the Source
+## 获取源代码
 
-Clone the repository:
+克隆仓库:
 
 ```sh
 git clone https://github.com/CHerSun/NoSleep.git
 cd NoSleep
 ```
 
-## Build results locations
+## 构建结果位置
 
-- .NET Framework 4.8 - `Sources/NoSleep/bin/Debug/net48/` or `Sources/NoSleep/bin/Release/net48/`
-- .NET 8.0 - `Sources/NoSleep/bin/Debug/net8.0-windows/` or `Sources/NoSleep/bin/Release/net8.0-windows/`
-- Published (single executable) .NET 8.0 - `Sources/NoSleep/bin/Release/net8.0-windows/win-x64/publish`
+- .NET Framework 4.8 - `Sources/NoSleep/bin/Debug/net48/` 或 `Sources/NoSleep/bin/Release/net48/`
+- .NET 8.0 - `Sources/NoSleep/bin/Debug/net8.0-windows/` 或 `Sources/NoSleep/bin/Release/net8.0-windows/`
+- 已发布(单可执行文件)的 .NET 8.0 - `Sources/NoSleep/bin/Release/net8.0-windows/win-x64/publish`
 
-## Building with Visual Studio
+## 使用 Visual Studio 构建
 
-This is the easiest way to build the solution. Simply open `Sources/NoSleep.sln` and build normally (`F6` or `Ctrl+Shift+B`).
+这是构建解决方案最简单的方式。只需打开 `Sources/NoSleep.sln` 并正常构建(`F6` 或 `Ctrl+Shift+B`)。
 
-## Building from the Command Line
+## 从命令行构建
 
-### Build .NET 8.0 Version
+### 构建 .NET 8.0 版本
 
-Use the `dotnet build` command. To build the debug version:
+使用 `dotnet build` 命令。要构建调试版本:
 
 ```sh
 cd Sources
 dotnet build -f net8.0-windows -c Debug
 ```
 
-For the release version:
+构建发布版本:
 
 ```sh
 cd Sources
 dotnet build -f net8.0-windows -c Release
 ```
 
-Note: The publish step (to create a single executable) is triggered automatically after the release build of `net8.0-windows` is complete.
+注意:在 `net8.0-windows` 的发布构建完成后,会自动触发发布步骤(以创建单可执行文件)。
 
-### Build .NET Framework 4.8 Version
+### 构建 .NET Framework 4.8 版本
 
-I wasn’t able to produce a single executable with dotnet build, so we use `msbuild` for this target. For a debug build:
+我无法使用 dotnet build 生成单可执行文件,因此我们对该目标使用 `msbuild`。要构建调试版本:
 
 ```sh
 cd Sources
 msbuild NoSleep/NoSleep.csproj /p:Configuration=Debug /p:TargetFramework=net48 /restore
 ```
 
-For the release build:
+构建发布版本:
 
 ```sh
 cd Sources
 msbuild NoSleep/NoSleep.csproj /p:Configuration=Release /p:TargetFramework=net48 /restore
 ```
 
-Make sure `msbuild` is in your PATH (it is usually available from a Visual Studio Developer Command Prompt) or provide the full path to `msbuild.exe`.
+请确保 `msbuild` 位于您的 PATH 中(通常可从 Visual Studio Developer Command Prompt 中获取),或者提供 `msbuild.exe` 的完整路径。
 
-## Building with Visual Studio Code
+## 使用 Visual Studio Code 构建
 
-Personally I prefer VS Code. You can define build tasks in a `.vscode/tasks.json` file. Here is a sample `tasks.json`:
+我个人更喜欢 VS Code。您可以在 `.vscode/tasks.json` 文件中定义构建任务。以下是一个示例 `tasks.json`:
 
 ```json
 {
@@ -108,7 +108,7 @@ Personally I prefer VS Code. You can define build tasks in a `.vscode/tasks.json
                 "${workspaceFolder}/Sources/NoSleep/NoSleep.csproj",
                 "/p:Configuration=Debug",
                 "/p:TargetFramework=net48",
-                "/p:GenerateResourceUsePreserializedResources=false",  // optional, but keep if needed
+                "/p:GenerateResourceUsePreserializedResources=false",  // 可选,如有需要请保留
                 "/restore"
             ]
         },
@@ -125,7 +125,7 @@ Personally I prefer VS Code. You can define build tasks in a `.vscode/tasks.json
                 "${workspaceFolder}/Sources/NoSleep/NoSleep.csproj",
                 "/p:Configuration=Release",
                 "/p:TargetFramework=net48",
-                "/p:GenerateResourceUsePreserializedResources=false",  // optional, but keep if needed
+                "/p:GenerateResourceUsePreserializedResources=false",  // 可选,如有需要请保留
                 "/restore"
             ]
         },
@@ -184,13 +184,13 @@ Personally I prefer VS Code. You can define build tasks in a `.vscode/tasks.json
 }
 ```
 
-You might need to adjust the `MSBuild` path or redefine the tasks to suit your environment.
+您可能需要根据自身环境调整 `MSBuild` 路径或重新定义任务。
 
-## Debugging
+## 调试
 
-Visual Studio provides immediate debugging support.
+Visual Studio 提供即时调试支持。
 
-For VS Code, you will need a debugging configuration. Here is a sample `.vscode/launch.json`:
+对于 VS Code,您需要一个调试配置。以下是一个示例 `.vscode/launch.json`:
 
 ```json
 {
@@ -221,4 +221,4 @@ For VS Code, you will need a debugging configuration. Here is a sample `.vscode/
 }
 ```
 
-Note that the `preLaunchTask` values must match the task labels exactly as defined in `tasks.json`.
+请注意,`preLaunchTask` 的值必须与 `tasks.json` 中定义的任务标签完全一致。
