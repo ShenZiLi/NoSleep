@@ -10,33 +10,6 @@ jobs:
   build:
     name: Build & Release
     runs-on: windows-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
-
-      - name: Restore dependencies
-        run: dotnet restore Sources/NoSleep/NoSleep.csproj
-
-      - name: Build & Publish (.NET 8.0 Release)
-        run: dotnet build Sources/NoSleep/NoSleep.csproj -c Release -f net8.0-windows
-
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: NoSleep-net8.0
-          path: Sources/NoSleep/bin/Release/net8.0-windows/win-x64/publish/
-          if-no-files-found: error
-
-  create-release:
-    name: Create Release
-    needs: build
-    runs-on: ubuntu-latest
     permissions:
       contents: write
 
@@ -46,6 +19,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
       - name: Get Version
         id: version
         shell: pwsh
@@ -54,11 +32,16 @@ jobs:
           Write-Host "Version=$ver"
           echo "version=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: NoSleep-net8.0
-          path: release-artifact
+      - name: Restore dependencies
+        run: dotnet restore Sources/NoSleep/NoSleep.csproj
+
+      - name: Build (net48 Release)
+        run: msbuild Sources/NoSleep/NoSleep.csproj /p:Configuration=Release /p:TargetFramework=net48 /restore
+
+      - name: Pack Artifact
+        shell: pwsh
+        run: |
+          Compress-Archive -Path Sources/NoSleep/bin/Release/net48/* -DestinationPath NoSleep-${{ steps.version.outputs.version }}-net48.zip
 
       - name: Create Release Tag
         id: tag
@@ -67,12 +50,6 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}-zh-CN"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "Creating tag: $TAG"
-
-      - name: Pack Artifact
-        shell: pwsh
-        run: |
-          Compress-Archive -Path release-artifact/* -DestinationPath NoSleep-${{ steps.version.outputs.version }}-zh-CN.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -84,7 +61,7 @@ jobs:
 
             - 基于上游 v${{ steps.version.outputs.version }} 版本
             - 新增简体中文 (zh-CN) 本地化支持
-            - 构建目标: .NET 8.0 (Windows), 单文件发布
-          files: NoSleep-${{ steps.version.outputs.version }}-zh-CN.zip
+            - 构建目标: .NET Framework 4.8
+          files: NoSleep-${{ steps.version.outputs.version }}-net48.zip
           draft: false
           prerelease: false
